@@ -1,28 +1,59 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus, Inject } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import {v4} from 'uuid';
 
-import { v4 } from 'uuid';
+// DTOs
+import { CreateUserDto } from '../dto/create-user.dto';
 
-import { User } from '../models';
+// Constants
+import { CustomResponse } from '../../constants/response';
+import { USERS_REPOSITORY } from '../../constants/database';
+
+// Entities
+import { UserEntity } from '../entities/user.entity';
+
+// Utils
+import { isEntityExist } from '../../utils/validation';
+import { createResponse } from '../../utils/create-response';
 
 @Injectable()
 export class UsersService {
-  private readonly users: Record<string, User>;
+  constructor(
+    @Inject(USERS_REPOSITORY)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
 
-  constructor() {
-    this.users = {}
+  async findOne(userId: string): Promise<CustomResponse & {
+    body: UserEntity
+  } | CustomResponse> {
+    const user = isEntityExist(await this.userRepository.findOne({
+      where: {
+        id: userId
+      }
+    }), 'User');
+
+    if (!(user instanceof UserEntity)) {
+      return user;
+    }
+    
+    return createResponse(HttpStatus.OK, 'OK', user);
   }
 
-  findOne(userId: string): User {
-    return this.users[ userId ];
+  async createOne(createUserDto: CreateUserDto): Promise<CustomResponse & {
+    body: UserEntity
+  } | CustomResponse & {
+    error: string
+  }> {
+    try {
+      const newUser = await this.userRepository.save({id: v4(), ...createUserDto});
+
+      return createResponse(HttpStatus.CREATED, 'User has been created', newUser); 
+    } catch (err) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Something went wrong during creation of user',
+        error: JSON.stringify(err)
+      }
+    }
   }
-
-  createOne({ name, password }: User): User {
-    const id = v4(v4());
-    const newUser = { id: name || id, name, password };
-
-    this.users[ id ] = newUser;
-
-    return newUser;
-  }
-
 }
