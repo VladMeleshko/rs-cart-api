@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Post, Body } from '@nestjs/common';
-// import { BasicAuthGuard, JwtAuthGuard } from '../auth';
+import { Controller, Get, Param, Post, Body, UseGuards } from '@nestjs/common';
+import { BasicAuthGuard } from '../auth';
 
 // DTOs
 import { CreateUserDto } from './dto/create-user.dto';
@@ -20,8 +20,7 @@ export class UsersController {
     private readonly usersService: UsersService
   ) {}
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Get(':id')
   async findOne(
     @Param('id') id: string
@@ -31,8 +30,7 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Post()
   async createOne(
     @Body() createUserDto: CreateUserDto

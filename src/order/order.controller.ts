@@ -1,5 +1,5 @@
-import { Controller, Get, Param, Put, Body } from '@nestjs/common';
-// import { BasicAuthGuard, JwtAuthGuard } from '../auth';
+import { Controller, Get, Param, Put, Body, UseGuards } from '@nestjs/common';
+import { BasicAuthGuard } from '../auth';
 
 // Constants
 import { CustomResponse } from '../constants/response';
@@ -20,8 +20,7 @@ export class OrderController {
     private readonly orderService: OrderService
   ) {}
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Get(':id')
   async findOneById(
     @Param('id') id: string
@@ -31,8 +30,7 @@ export class OrderController {
     return this.orderService.findOneById(id);
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Put(':id')
   async updateOne(
     @Param('id') id: string,

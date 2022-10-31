@@ -3,7 +3,7 @@ import { v4 } from 'uuid';
 import { EntityManager, Repository } from 'typeorm';
 
 // Constants
-import { ORDERS_REPOSITORY, USERS_REPOSITORY } from '../../constants/database';
+import { ORDERS_REPOSITORY } from '../../constants/database';
 import { CustomResponse } from '../../constants/response';
 
 // Types
@@ -46,11 +46,12 @@ export class OrderService {
 
   public async createOne(
     manager: EntityManager,
-    createOrderDto: CreateOrderDto
+    createOrderDto: CreateOrderDto,
+    userId: string
   ): Promise<OrderEntity> {
     const user = await manager.getRepository(UserEntity).findOne({
       where: {
-        id: '85ca217f-9f30-470f-b444-6ab03c37adc5'
+        id: userId
       },
       relations: ['cart']
     });

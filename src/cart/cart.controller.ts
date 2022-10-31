@@ -1,6 +1,5 @@
-import { Controller, Get, Delete, Put, Body, Req, Post, UseGuards, HttpStatus } from '@nestjs/common';
-
-// import { BasicAuthGuard, JwtAuthGuard } from '../auth';
+import { Controller, Get, Delete, Put, Body, Req, Post, UseGuards } from '@nestjs/common';
+import { BasicAuthGuard } from '../auth';
 
 // DTOs
 import { UpdateCartDto } from './dto/update-cart.dto';
@@ -25,8 +24,7 @@ export class CartController {
     private cartService: CartService,
   ) {}
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Get()
   async findUserCart(@Req() req: AppRequest): Promise<CustomResponse & {
     body: {
@@ -37,8 +35,7 @@ export class CartController {
     return this.cartService.findOrCreateByUserId(getUserIdFromRequest(req));
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Put()
   async updateUserCart(
     @Req() req: AppRequest,
@@ -46,15 +43,13 @@ export class CartController {
     return this.cartService.updateByUserId(getUserIdFromRequest(req), updateCartDto)
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Delete()
   async clearUserCart(@Req() req: AppRequest): Promise<CustomResponse> {
     return this.cartService.removeByUserId(getUserIdFromRequest(req));
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @UseGuards(BasicAuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Post('checkout')
   async checkout(
     @Req() req: AppRequest,

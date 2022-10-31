@@ -43,7 +43,7 @@ export class CartService {
       .leftJoinAndSelect('cart.items', 'items')
       .leftJoin('cart.user', 'user')
       .where('user.id = :userId', {
-        userId: '85ca217f-9f30-470f-b444-6ab03c37adc5'
+        userId
       })
       .getOne();
 
@@ -70,7 +70,7 @@ export class CartService {
   async createByUserId(userId: string): Promise<CartEntity | CustomResponse> {
     const user = isEntityExist(await this.userRepository.findOne({
       where: {
-        id: '85ca217f-9f30-470f-b444-6ab03c37adc5'
+        id: userId
       }
     }), 'User');
 
@@ -212,7 +212,7 @@ export class CartService {
   async remove(manager: EntityManager, userId: string): Promise<CustomResponse> {
     const user = await manager.getRepository(UserEntity).findOne({
       where: {
-        id: '85ca217f-9f30-470f-b444-6ab03c37adc5'
+        id: userId
       },
       relations: ['cart', 'cart.items']
     });
@@ -265,7 +265,7 @@ export class CartService {
         items: cart.items,
         userId,
         total
-      });
+      }, userId);
 
       await this.removeByUserId(userId);
 

@@ -3,6 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/services/users.service';
 import { User } from '../users/models';
 import { contentSecurityPolicy } from 'helmet';
+import { UserEntity } from '../users/entities/user.entity';
+import { CustomResponse } from '../constants/response';
 
 @Injectable()
 export class AuthService {
@@ -11,14 +13,22 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  validateUser(name: string, password: string): any {
-    const user = this.usersService.findOne(name);
+  async validateUser(name: string, password: string): Promise<UserEntity | void> {
+    const user = await this.usersService.findOneByNameAndPassword(name, password);
 
     if (user) {
       return user;
-    }
+    }   
 
-    return this.usersService.createOne({ name, password })
+    const createIserInDBResponse = await this.usersService.createOne({ name, password }) as CustomResponse & {
+      body: UserEntity;
+    };
+
+    const createdUser = createIserInDBResponse.body;
+
+    if (createdUser) {
+      return createdUser;
+    }
   }
 
   login(user: User, type) {
@@ -46,7 +56,7 @@ export class AuthService {
     console.log(user);
 
     function encodeUserToken(user) {
-      const { id, name, password } = user;
+      const { name, password } = user;
       const buf = Buffer.from([name, password].join(':'), 'utf8');
 
       return buf.toString('base64');

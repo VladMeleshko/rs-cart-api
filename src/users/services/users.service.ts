@@ -23,6 +23,15 @@ export class UsersService {
     private readonly userRepository: Repository<UserEntity>,
   ) {}
 
+    async findOneByNameAndPassword(name: string, password: string): Promise<UserEntity | undefined> {
+      return this.userRepository.findOne({
+        where: {
+          name,
+          password
+        }
+      })
+    }
+
   async findOne(userId: string): Promise<CustomResponse & {
     body: UserEntity
   } | CustomResponse> {
