@@ -1,11 +1,12 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsOptional, IsEnum, IsString } from 'class-validator';
 
 // Types
 import { DeliveryType } from "../models"
 
 export class OrderDeliveryDto {
+  @IsOptional()
   @IsEnum(DeliveryType)
-  type: DeliveryType;
+  type?: DeliveryType;
 
   @IsString()
   address: string;

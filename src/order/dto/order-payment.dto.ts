@@ -5,7 +5,8 @@ import { PaymentType } from "../models"
 
 export class OrderPaymentDto {
   @IsEnum(PaymentType)
-  type: PaymentType;
+  @IsOptional()
+  type?: PaymentType;
 
   @IsString()
   @IsOptional()

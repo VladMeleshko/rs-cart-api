@@ -6,7 +6,7 @@ import { EntityManager } from 'typeorm';
 
 // Constants
 import { CustomResponse } from '../../constants/response';
-import { CARTS_REPOSITORY, CART_ITEMS_REPOSITORY, PRODUCTS_REPOSITORY, USERS_REPOSITORY } from '../../constants/database';
+import { CARTS_REPOSITORY, PRODUCTS_REPOSITORY, USERS_REPOSITORY } from '../../constants/database';
 
 // DTOs
 import { UpdateCartDto } from '../dto/update-cart.dto';
@@ -39,13 +39,32 @@ export class CartService {
   ) {}
 
   async findByUserId(userId: string): Promise<CartEntity | null> {
-    return this.cartRepository.createQueryBuilder('cart')
+    const cart = await this.cartRepository.createQueryBuilder('cart')
       .leftJoinAndSelect('cart.items', 'items')
       .leftJoin('cart.user', 'user')
       .where('user.id = :userId', {
         userId: '85ca217f-9f30-470f-b444-6ab03c37adc5'
       })
       .getOne();
+
+    if (cart) {
+      const items = [];
+
+      for await (const item of cart.items) {
+        const product = await this.productRepository.findOne({
+          where: {
+            id: item.productId
+          },
+          relations: ['stock']
+        });
+
+        items.push({...item, product: {...product, count: product.stock.count}});
+      }
+
+      return {...cart, items};
+    }
+
+    return cart;
   }
 
   async createByUserId(userId: string): Promise<CartEntity | CustomResponse> {
@@ -153,22 +172,24 @@ export class CartService {
 
     const {cart} = getCartResponse.body;
 
-    for await (const item of updateCartDto.items) {
-      const checkResponse = await this.checkProductCount(item.productId, item.count);
+    const checkResponse = await this.checkProductCount(updateCartDto.productId, updateCartDto.count);
       
-      if (checkResponse) {
-        return checkResponse;
-      }
+    if (checkResponse) {
+      return checkResponse;
     }
-    
-    const newItems = updateCartDto.items.map(item => ({
-      ...item,
-        id: v4(),
-        cart
-    }));
       
+    const item = cart.items.find(i => i.productId === updateCartDto.productId);
+
     await getConnection().transaction(async manager => {
-      await manager.getRepository(CartItemEntity).save(newItems);
+      if (item) {
+        await manager.getRepository(CartItemEntity).update(item.id, {count: updateCartDto.count});  
+      } else {
+        await manager.getRepository(CartItemEntity).save({
+          ...updateCartDto,
+          id: v4(),
+          cart
+        });
+      }
         
       await manager.getRepository(CartEntity).update(cart.id, {updatedAt: new Date()});
     });

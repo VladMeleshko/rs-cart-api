@@ -6,6 +6,7 @@ import { OrderPaymentDto } from './order-payment.dto';
 import { OrderDeliveryDto } from './order-delivery.dto';
 
 export class AdditionalOrderInfoDto {
+    @IsOptional()
     @ValidateNested()
     @Type(() => OrderPaymentDto)
     payment: OrderPaymentDto;

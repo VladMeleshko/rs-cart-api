@@ -1,11 +1,9 @@
-import { ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-
-// DTOs
-import { CartItemDto } from './cart-item.dto';
+import { IsString, IsNumber } from 'class-validator';
 
 export class UpdateCartDto {
-  @ValidateNested()
-  @Type(() => CartItemDto)
-  items: CartItemDto[];
+  @IsString()
+  productId: string;
+
+  @IsNumber()
+  count: number;
 }
