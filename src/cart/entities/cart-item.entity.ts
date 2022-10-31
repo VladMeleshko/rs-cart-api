@@ -1,4 +1,6 @@
 import { Entity, PrimaryColumn, ManyToOne, JoinColumn, Column } from 'typeorm';
+
+// Entities
 import { CartEntity } from './cart.entity';
 
 @Entity('Cart_items')

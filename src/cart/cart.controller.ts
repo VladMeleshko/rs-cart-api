@@ -1,24 +1,28 @@
 import { Controller, Get, Delete, Put, Body, Req, Post, UseGuards, HttpStatus } from '@nestjs/common';
-import { CustomResponse } from '../constants/response';
 
 // import { BasicAuthGuard, JwtAuthGuard } from '../auth';
 
+// DTOs
+import { UpdateCartDto } from './dto/update-cart.dto';
+import { AdditionalOrderInfoDto } from '../order/dto/additional-order-info.dto';
+
 // Constants
-import { AppRequest, getUserIdFromRequest } from '../shared';
+import { CustomResponse } from '../constants/response';
 
 // Entities
 import { CartEntity } from './entities/cart.entity';
+import { OrderEntity } from '../order/entities/order.entity';
 
 // Services
-import { OrderService } from '../order';
 import { CartService } from './services';
-import { UpdateCartDto } from './dto/update-cart.dto';
+
+// Shared
+import { AppRequest, getUserIdFromRequest } from '../shared';
 
 @Controller('api/profile/cart')
 export class CartController {
   constructor(
     private cartService: CartService,
-    private orderService: OrderService
   ) {}
 
   // @UseGuards(JwtAuthGuard)
@@ -51,36 +55,13 @@ export class CartController {
 
   // @UseGuards(JwtAuthGuard)
   // @UseGuards(BasicAuthGuard)
-  // @Post('checkout')
-  // checkout(@Req() req: AppRequest, @Body() body) {
-  //   const userId = getUserIdFromRequest(req);
-  //   const cart = this.cartService.findByUserId(userId);
-
-  //   if (!(cart && cart.items.length)) {
-  //     const statusCode = HttpStatus.BAD_REQUEST;
-  //     req.statusCode = statusCode
-
-  //     return {
-  //       statusCode,
-  //       message: 'Cart is empty',
-  //     }
-  //   }
-
-  //   const { id: cartId, items } = cart;
-  //   const total = calculateCartTotal(cart);
-  //   const order = this.orderService.create({
-  //     ...body, // TODO: validate and pick only necessary data
-  //     userId,
-  //     cartId,
-  //     items,
-  //     total,
-  //   });
-  //   this.cartService.removeByUserId(userId);
-
-  //   return {
-  //     statusCode: HttpStatus.OK,
-  //     message: 'OK',
-  //     data: { order }
-  //   }
-  // }
+  @Post('checkout')
+  async checkout(
+    @Req() req: AppRequest,
+    @Body() additionalOrderInfoDto: AdditionalOrderInfoDto
+    ): Promise<CustomResponse & {
+      body: OrderEntity
+    } | CustomResponse> {
+    return this.cartService.checkout(getUserIdFromRequest(req), additionalOrderInfoDto);
+  }
 }

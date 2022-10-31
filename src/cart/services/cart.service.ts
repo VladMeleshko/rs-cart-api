@@ -1,35 +1,41 @@
 import { Injectable, HttpStatus, Inject } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, getConnection } from 'typeorm';
 import { calculateCartTotal } from '../models-rules';
 import {v4} from 'uuid';
+import { EntityManager } from 'typeorm';
 
 // Constants
 import { CustomResponse } from '../../constants/response';
 import { CARTS_REPOSITORY, CART_ITEMS_REPOSITORY, PRODUCTS_REPOSITORY, USERS_REPOSITORY } from '../../constants/database';
+
+// DTOs
+import { UpdateCartDto } from '../dto/update-cart.dto';
+import { AdditionalOrderInfoDto } from '../../order/dto/additional-order-info.dto';
 
 // Entities
 import { UserEntity } from '../../users/entities/user.entity';
 import { CartItemEntity } from '../entities/cart-item.entity';
 import { CartEntity } from '../entities/cart.entity';
 import { ProductEntity } from '../../products-service/entities/product.entity';
+import { OrderEntity } from '../../order/entities/order.entity';
 
 // Utils
 import { createResponse } from '../../utils/create-response';
 import { isEntityExist } from '../../utils/validation';
-import { UpdateCartDto } from '../dto/update-cart.dto';
-import { getConnection } from 'typeorm';
+
+// Services
+import { OrderService } from '../../order';
 
 @Injectable()
 export class CartService {
   constructor(
     @Inject(CARTS_REPOSITORY)
     private readonly cartRepository: Repository<CartEntity>,
-    @Inject(CART_ITEMS_REPOSITORY)
-    private readonly cartItemRepository: Repository<CartItemEntity>,
     @Inject(USERS_REPOSITORY)
     private readonly userRepository: Repository<UserEntity>,
     @Inject(PRODUCTS_REPOSITORY)
-    private readonly productRepository: Repository<ProductEntity>
+    private readonly productRepository: Repository<ProductEntity>,
+    private readonly orderService: OrderService
   ) {}
 
   async findByUserId(userId: string): Promise<CartEntity | null> {
@@ -141,6 +147,10 @@ export class CartService {
   async updateByUserId(userId: string, updateCartDto: UpdateCartDto) {
     const getCartResponse = await this.findOrCreateByUserId(userId) as CustomResponse & {body: {cart: CartEntity, total: number}};
 
+    if (!getCartResponse.body) {
+      return getCartResponse;
+    }
+
     const {cart} = getCartResponse.body;
 
     for await (const item of updateCartDto.items) {
@@ -178,27 +188,71 @@ export class CartService {
     });
   }
 
-  async removeByUserId(userId: string): Promise<CustomResponse> {
-    const user = isEntityExist(await this.userRepository.findOne({
+  async remove(manager: EntityManager, userId: string): Promise<CustomResponse> {
+    const user = await manager.getRepository(UserEntity).findOne({
       where: {
         id: '85ca217f-9f30-470f-b444-6ab03c37adc5'
       },
-      relations: ['cart']
-    }), 'User');
+      relations: ['cart', 'cart.items']
+    });
 
-    if (!(user instanceof UserEntity)) {
-      return user;
+    if (user.cart.items.length) {
+      const cartItemIds = user.cart.items.map(item => item.id);
+  
+      await manager.getRepository(CartItemEntity).delete(cartItemIds);
     }
-
-    await getConnection().transaction(async manager => {
-      await manager.getRepository(UserEntity).update(user.id, {cart: null});
-
-      await manager.getRepository(CartEntity).delete(user.cart.id);
-    })
     
     return {
       statusCode: HttpStatus.OK,
       message: 'OK'
     }
+  }
+
+  async removeByUserId(
+    userId: string,
+    manager?: EntityManager
+    ): Promise<CustomResponse> {
+    if (manager) {
+      return this.remove(manager, userId);
+    } else {
+      return getConnection().transaction(async manager => {
+        return this.remove(manager, userId);
+      })
+    }
+  }
+
+  async checkout(
+    userId: string,
+    additionalOrderInfoDto: AdditionalOrderInfoDto
+  ): Promise<CustomResponse & {
+    body: OrderEntity
+  } | CustomResponse> {
+    const cart = await this.findByUserId(userId);
+
+    if (!(cart || cart.items.length)) {
+      return {
+        statusCode: HttpStatus.BAD_REQUEST,
+        message: 'Cart is empty',
+      }
+    }
+
+    const total = await this.prepareFullCartItemsInfoAndCalculateTotalPrice(cart);
+
+    return getConnection().transaction(async (manager: EntityManager) => {
+      const order = await this.orderService.createOne(manager, {
+        ...additionalOrderInfoDto,
+        items: cart.items,
+        userId,
+        total
+      });
+
+      await this.removeByUserId(userId);
+
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OK',
+        data: { order }
+      }
+    });
   }
 }

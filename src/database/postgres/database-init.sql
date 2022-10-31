@@ -2,8 +2,8 @@
 
 CREATE TABLE "Carts" (
   "id" uuid NOT NULL,
-  "created_at" DATE NOT NULL,
-  "updated_at" DATE NOT NULL,
+  "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updated_at" TIMESTAMP(3) NOT NULL,
   CONSTRAINT "CART_PRIMARY_KEY" PRIMARY KEY ("id")
 );
 
@@ -37,8 +37,9 @@ CREATE TABLE "Orders" (
   "id" uuid NOT NULL,
   "user_id" uuid NOT NULL,
   "cart_id" uuid NOT NULL,
-  "payment" JSONB NOT NULL,
-  "delivery" JSONB NOT NULL,
+  "items" JSONB NOT NULL,
+  "payment" JSONB,
+  "delivery" JSONB,
   "comments" TEXT,
   "status" TEXT NOT NULL,
   "total" INTEGER NOT NULL,

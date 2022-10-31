@@ -1,5 +1,8 @@
-import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn } from 'typeorm';
-import { CartEntity } from 'src/cart/entities/cart.entity';
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, OneToMany } from 'typeorm';
+
+// Entities
+import { CartEntity } from '../../cart/entities/cart.entity';
+import { OrderEntity } from '../../order/entities/order.entity';
 
 @Entity('Users')
 export class UserEntity {
@@ -18,4 +21,11 @@ export class UserEntity {
   @OneToOne(() => CartEntity, cart => cart.user, {nullable: true})
   @JoinColumn({name: 'cart_id'})
   cart: CartEntity;
+
+  @OneToMany(
+    () => OrderEntity,
+    orders => orders.user,
+    {cascade: true}
+  )
+  orders: OrderEntity[];
 }

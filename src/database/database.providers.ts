@@ -1,11 +1,16 @@
 import { Provider } from '@nestjs/common';
+import { Connection, createConnection } from 'typeorm';
+
+// Constants
+import { DATABASE_CONNECTION } from '../constants/database';
+
+// Entities
 import { CartItemEntity } from '../cart/entities/cart-item.entity';
 import { CartEntity } from '../cart/entities/cart.entity';
 import { ProductEntity } from '../products-service/entities/product.entity';
 import { UserEntity } from '../users/entities/user.entity';
-import { Connection, createConnection } from 'typeorm';
-import { DATABASE_CONNECTION } from '../constants/database';
 import { StockEntity } from '../products-service/entities/stock.entity';
+import { OrderEntity } from '../order/entities/order.entity';
 
 export const databaseProviders: Provider[] = [
   {
@@ -20,7 +25,7 @@ export const databaseProviders: Provider[] = [
         database: process.env.POSTGRES_DB,
         schema: process.env.POSTGRES_SCHEMA,
         logging: false,
-        entities: [CartEntity, CartItemEntity, UserEntity, ProductEntity, StockEntity],
+        entities: [CartEntity, CartItemEntity, UserEntity, ProductEntity, StockEntity, OrderEntity],
         synchronize: false
       });
     }

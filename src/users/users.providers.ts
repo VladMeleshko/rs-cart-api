@@ -1,5 +1,9 @@
-import { DATABASE_CONNECTION, USERS_REPOSITORY } from "../constants/database";
 import { Connection } from "typeorm";
+
+// Constants
+import { DATABASE_CONNECTION, USERS_REPOSITORY } from "../constants/database";
+
+// Entities
 import { UserEntity } from "./entities/user.entity";
 
 export const usersProviders = [

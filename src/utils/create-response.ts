@@ -1,5 +1,7 @@
 import {HttpStatus} from '@nestjs/common';
-import { CustomResponse } from 'src/constants/response';
+
+// Constants
+import { CustomResponse } from '../constants/response';
 
 export const createResponse = (
   statusCode: HttpStatus,

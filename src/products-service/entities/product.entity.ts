@@ -1,4 +1,6 @@
 import { PrimaryColumn, Entity, Column, OneToOne } from 'typeorm';
+
+// Entities
 import { StockEntity } from './stock.entity';
 
 @Entity('Products')

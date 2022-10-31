@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Post, Body } from '@nestjs/common';
 // import { BasicAuthGuard, JwtAuthGuard } from '../auth';
 
-// Dtos
+// DTOs
 import { CreateUserDto } from './dto/create-user.dto';
+
+// Entites
 import { UserEntity } from './entities/user.entity';
 
 // Constants

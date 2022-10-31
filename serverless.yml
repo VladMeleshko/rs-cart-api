@@ -14,6 +14,7 @@ provider:
   runtime: nodejs14.x
   stage: dev
   region: eu-west-1
+  timeout: 10
   httpApi:
     cors: true
   environment:
