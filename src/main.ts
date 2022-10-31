@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import serverlessExpress from '@vendia/serverless-express';
@@ -12,6 +13,13 @@ async function bootstrap(): Promise<Handler> {
   app.enableCors({
     origin: (req, callback) => callback(null, true),
   });
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      enableDebugMessages: true,
+      transform: true
+    })
+  );
 
   app.use(helmet());
 
