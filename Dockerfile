@@ -14,8 +14,9 @@ RUN npm run build \
 
 FROM node:14-alpine as prod
 WORKDIR /usr/src/app
+ENV NODE_ENV production
 COPY --from=dev-dependencies /usr/src/app/package.json ./
-RUN npm install --only=production \
+RUN npm install \
     && npm cache clean --force
 COPY --from=build /usr/src/app/dist ./dist
 EXPOSE 4000
