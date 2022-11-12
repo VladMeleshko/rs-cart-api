@@ -1,0 +1,17 @@
+# Auxiliary folders with files created for development. For correct operation, they must be recreated on the basis of the system on which the production version will be hosted
+dist
+node_modules
+
+# Auxiliary files for formatting the code style
+.eslintrc.js
+.prettierrc
+
+# Folders and files that not required in production version
+.elasticbeanstalk
+.serverless
+.dockerignore
+.env.example
+.gitignore
+Dockerfile
+README.md
+serverless.yml
